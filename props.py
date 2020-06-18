@@ -6,7 +6,7 @@ class Term:
     def __init__(self, name: str):
         self.name = name
         self.variable = name.split("¬")[-1]
-        self.sign = not(name.startswith("¬"))
+        self.sign = not (name.startswith("¬"))
 
     def __repr__(self) -> str:
         return self.name
@@ -27,7 +27,7 @@ class Term:
         return hash(self.name)
 
     def assign(self, b: bool) -> bool:
-        return b if self.sign else not(b)
+        return b if self.sign else not (b)
 
 
 Clause = Tuple[Term, ...]
