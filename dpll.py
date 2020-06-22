@@ -32,14 +32,10 @@ def unit_clause_resolution(circ: Circuit, assigns: Assignment = {}) -> Update:
     assigns = {**assigns, **{u.variable: u.sign for u in units}}
 
     new_circ = circ.copy()
-    while len(units) > 0:
-        u = list(units)[0]
+    for u in units:
         new_circ = rm_term(rm_clse(new_circ, u), -u)
 
-        units = {clse[0] for clse in new_circ if len(clse) == 1}
-        assigns = {**assigns, **{u.variable: u.sign for u in units}}
-
-    return assigns, new_circ#unit_clause_resolution(new_circ, assigns)
+    return unit_clause_resolution(new_circ, assigns)
 
 
 def dpll(circ: Circuit, assigns: Assignment = {}) -> Solution:
