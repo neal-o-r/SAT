@@ -32,31 +32,39 @@ def unit_clause_resolution(circ: Circuit, assigns: Assignment = {}) -> Update:
     assigns = {**assigns, **{u.variable: u.sign for u in units}}
 
     new_circ = circ.copy()
-    for u in units:
+    while len(units) > 0:
+        u = list(units)[0]
         new_circ = rm_term(rm_clse(new_circ, u), -u)
 
-    return unit_clause_resolution(new_circ, assigns)
+        units = {clse[0] for clse in new_circ if len(clse) == 1}
+        assigns = {**assigns, **{u.variable: u.sign for u in units}}
+
+    return assigns, new_circ#unit_clause_resolution(new_circ, assigns)
 
 
 def dpll(circ: Circuit, assigns: Assignment = {}) -> Solution:
-
     if len(circ) is 0:
         return True, assigns
 
     if any(len(clse) == 0 for clse in circ):
         return False, {}
 
-    v = Term(circ[0][0].variable)
-    pure_a, pure_circ = pure_literal_resolution(circ)
-    unit_a, resolved_circ = unit_clause_resolution(pure_circ)
+    unit_a, unit_circ = unit_clause_resolution(circ)
+    pure_a, resolved_circ = pure_literal_resolution(unit_circ)
 
     assigns = {**assigns, **pure_a, **unit_a}
-    new_circ = rm_term(rm_clse(pure_circ, v), -v)
+    # did resolution solve the problem
+    if len(resolved_circ) is 0:
+        return True, assigns
+
+    v = Term(circ[0][0].variable)
+
+    new_circ = rm_term(rm_clse(resolved_circ, v), -v)
     sat, pot_assign = dpll(new_circ, {**assigns, **{v.variable: True}})
     if sat:
         return sat, pot_assign
 
-    new_circ = rm_term(rm_clse(pure_circ, -v), v)
+    new_circ = rm_term(rm_clse(resolved_circ, -v), v)
     sat, pot_assign = dpll(new_circ, {**assigns, **{v.variable: False}})
     if sat:
         return sat, pot_assign
